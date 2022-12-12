@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
+  <script type="text/javascript" src="js/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="js/jquery.mousewheel.js"></script>
+  <title>聊天机器人</title>
+</head>
+
+<body>
+  <div class="wrap">
+    <!-- 头部 Header 区域 -->
+    <div class="header">
+      <h3>小思同学</h3>
+      <img src="img/person01.png" alt="icon" />
+    </div>
+    <!-- 中间 聊天内容区域 -->
+    <div class="main">
+      <ul class="talk_list" style="top: 0px;" id="talk_list">
+        <li class="left_word">
+          <img src="img/person01.png" /> <span>嗨，最近想我没有？</span>
+        </li>
+        <!-- <li class="right_word">
+            <img src="img/person02.png" /> <span>你好哦</span>
+          </li> -->
+      </ul>
+      <div class="drag_bar" style="display: none;">
+        <div class="drager ui-draggable ui-draggable-handle" style="display: none; height: 412.628px;"></div>
+      </div>
+    </div>
+    <!-- 底部 消息编辑区域 -->
+    <div class="footer">
+      <img src="img/person02.png" alt="icon" />
+      <input type="text" placeholder="说的什么吧..." class="input_txt" id="ipt" />
+      <input type="button" value="发 送" class="input_sub" id="btnSend" />
+    </div>
+  </div>
+  <!-- 注意：只要为 audio 指定了新的 src 属性，而且指定了 autoplay，那么，语音就会自动播放 -->
+  <audio src="" id="voice" autoplay="autoplay" style="display: none;"></audio>
+  <script type="text/javascript" src="js/scroll.js"></script>
+  <!-- <script src="./js/chat.js"></script> -->
+</body>
+<script>
+  // 回车发送
+  $('#ipt').on('keydown', function (e) {
+    if (e.keyCode == 13) {
+      $("#btnSend").click(); //直接模拟点击触发下面的点击事件
+    }
+  })
+  // -----发送按钮
+  $("#btnSend").on("click", function () {
+    resetui();
+    let ipt = $('#ipt').val().trim();
+    $("#talk_list").append('<li class="right_word"> <img src="img/person02.png"/><span>' + ipt +
+      '</span></li>')
+    $('#ipt').val("");
+    // 调用api对话接口
+    $.ajax({
+      method: 'GET',
+      url: 'http://www.liulongbin.top:3006/api/robot',
+      data: {
+        spoken: ipt
+      },
+      success: function (res) {
+        console.log(res.data.info.text);
+        $("#talk_list").append('<li class="left_word"> <img src="img/person01.png"/><span>' + res.data.info
+          .text + '</span></li>')
+        resetui();
+        // 调用api文字转语音接口
+        getsound(res.data.info.text);
+      }
+    })
+
+
+  })
+
+
+  // 调用api文字转语音接口
+  function getsound(text) {
+    $.ajax({
+      method: 'GET',
+      url: 'http://www.liulongbin.top:3006/api/synthesize',
+      data: {
+        text: text
+      },
+      success: function (res) {
+        // console.log(res)
+        if (res.status === 200) {
+          // 播放语音
+          $('#voice').attr('src', res.voiceUrl)
+        }
+        // resetui();
+      }
+    })
+  }
+
+
+
+
+
+
+  // 消息发送函数
+  function send() {
+    resetui();
+    let ipt = $('#ipt').val().trim();
+    $("#talk_list").append('<li class="right_word"> <img src="img/person02.png"/><span>' + ipt +
+      '</span></li>')
+    $('#ipt').val("");
+  }
+</script>
+
+</html>
